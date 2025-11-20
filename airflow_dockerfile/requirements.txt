@@ -1,0 +1,8 @@
+apache-airflow==2.6.3
+apache-airflow-providers-apache-kafka==1.1.1
+apache-airflow-providers-postgres==5.7.1
+pandas==2.0.3
+clickhouse-driver==0.2.10
+confluent-kafka==2.2.0
+kafka-python==2.0.2
+psycopg2-binary==2.9.7

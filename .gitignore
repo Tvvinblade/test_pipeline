@@ -1,0 +1,22 @@
+# Logs
+logs/
+*.log
+
+# Docker volumes
+postgres_data/
+clickhouse_data/
+superset_data/
+postgres_superset_data/
+
+# Secrets
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+venv/
