@@ -1,7 +1,7 @@
 """
 DAG 2: Создание Raw Layer в ClickHouse
 - Создаёт базу данных raw
-- Создаёт Raw MergeTree таблицы (БЕЗ Kafka Engine)
+- Создаёт Raw MergeTree таблицы
 """
 
 from datetime import datetime, timedelta
@@ -33,9 +33,9 @@ def create_database(**context):
     try:
         query = "CREATE DATABASE IF NOT EXISTS raw;"
         client.execute(query)
-        logger.info("✅ Database 'raw' created successfully")
+        logger.info("БД успешко создана")
     except Exception as e:
-        logger.error(f"❌ Error creating database: {e}")
+        logger.error(f"Ошибка создания БД: {e}")
         raise
     finally:
         client.disconnect()
@@ -50,7 +50,7 @@ def create_raw_tables(**context):
             client.execute(query)
         logger.info(f"✅ Created {len(queries)} Raw MergeTree tables")
     except Exception as e:
-        logger.error(f"❌ Error creating raw tables: {e}")
+        logger.error(f"Ошибка создания таблицы: {e}")
         raise
     finally:
         client.disconnect()
@@ -70,6 +70,7 @@ with DAG(
     catchup=False,
     tags=['clickhouse', 'raw-layer', 'etl'],
 ):
+
 
     task_create_database = PythonOperator(
         task_id='create_database',

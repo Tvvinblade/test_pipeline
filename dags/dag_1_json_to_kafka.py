@@ -1,3 +1,9 @@
+"""
+DAG "load_jsonl_to_kafka"
+- Полученные jsonl отправляем в kafka
+- создаем отдельный топик для каждого файла
+"""
+
 from airflow import DAG
 from airflow.decorators import task
 from datetime import datetime, timedelta
@@ -31,7 +37,7 @@ default_args = {
 }
 
 with DAG(
-    dag_id='send_jsonl_to_kafka_taskflow',
+    dag_id='send_jsonl_to_kafka',
     default_args=default_args,
     description='DAG для отправки JSONL файлов в Kafka',
     schedule_interval=None,
@@ -45,10 +51,10 @@ with DAG(
         filepath = os.path.join(DATA_DIR, filename)
         
         if not os.path.exists(filepath):
-            logger.error(f"❌ Файл не найден: {filepath}")
+            logger.error(f"Файл не найден: {filepath}")
             raise FileNotFoundError(f"File not found: {filepath}")
         
-        logger.info(f"📤 Подключение к Kafka: {KAFKA_BROKER}")
+        logger.info(f"Подключение к Kafka: {KAFKA_BROKER}")
         producer = KafkaProducer(
             bootstrap_servers=[KAFKA_BROKER],
             value_serializer=lambda v: json.dumps(v).encode('utf-8'),
@@ -57,7 +63,7 @@ with DAG(
             max_in_flight_requests_per_connection=1
         )
 
-        logger.info(f"📤 Отправка данных из {filename} в топик {topic}")
+        logger.info(f"Отправка данных из {filename} в топик {topic}")
         count = 0
         errors = 0
         
@@ -75,18 +81,20 @@ with DAG(
                             logger.info(f"  Отправлено {count} сообщений...")
                             
                     except json.JSONDecodeError as e:
-                        logger.warning(f"⚠️ Ошибка JSON в строке {line_num}: {str(e)[:50]}")
+                        logger.warning(f"Ошибка JSON в строке {line_num}: {str(e)[:50]}")
                         errors += 1
                     except Exception as e:
-                        logger.error(f"❌ Ошибка отправки в строке {line_num}: {str(e)}")
+                        logger.error(f"Ошибка отправки в строке {line_num}: {str(e)}")
                         errors += 1
         finally:
             # Обязательно закрываем producer
             producer.flush()
             producer.close()
         
-        logger.info(f"✅ {filename}: отправлено {count} сообщений в топик {topic} (ошибок: {errors})")
+        logger.info(f"{filename}: отправлено {count} сообщений в топик {topic} (ошибок: {errors})")
         return f"Successfully sent {count} messages from {filename} to {topic}"
+    
+    dag.doc_md = __doc__
 
     # Создаем задачи для каждого файла
     tasks = [send_file_to_kafka(filename, topic) for filename, topic in TOPICS.items()]
